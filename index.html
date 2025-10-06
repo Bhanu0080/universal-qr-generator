@@ -22,7 +22,8 @@
       padding: 30px;
       border-radius: 20px;
       text-align: center;
-      width: 400px;
+      width: 90%;
+      max-width: 400px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     }
 
@@ -41,7 +42,7 @@
     }
 
     select, input {
-      background: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.9);
       outline: none;
     }
 
@@ -78,6 +79,19 @@
     .hidden {
       display: none;
     }
+
+    #preview {
+      display: none;
+      background: white;
+      border-radius: 15px;
+      margin-top: 10px;
+      padding: 10px;
+    }
+
+    #preview img {
+      width: 200px;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
@@ -95,9 +109,8 @@
 
     <input type="text" id="dataInput" placeholder="Enter your data here...">
     <input type="file" id="fileInput" class="hidden">
-
     <input type="text" id="upiInput" class="hidden" placeholder="Enter UPI ID (example@upi)">
-    
+
     <div id="wifiInputs" class="hidden">
       <input type="text" id="ssidInput" placeholder="Wi-Fi SSID (Network Name)">
       <input type="text" id="wifiPasswordInput" placeholder="Wi-Fi Password">
@@ -106,133 +119,3 @@
     <button onclick="generateQRCode()">Generate QR</button>
 
     <div id="qrcode"></div>
-
-    <div class="actions">
-      <button onclick="downloadQR()">Download</button>
-      <button onclick="copyQR()">Copy Link</button>
-    </div>
-  </div>
-
-  <script>
-    let qrcode;
-
-    function generateQRCode() {
-      const type = document.getElementById("typeSelect").value;
-      const input = document.getElementById("dataInput");
-      const fileInput = document.getElementById("fileInput");
-      const upiInput = document.getElementById("upiInput");
-      const ssid = document.getElementById("ssidInput").value.trim();
-      const wifiPass = document.getElementById("wifiPasswordInput").value.trim();
-
-      let data = "";
-
-      if (type === "file") {
-        if (fileInput.files.length === 0) {
-          alert("Please select a file!");
-          return;
-        }
-        const file = fileInput.files[0];
-        data = URL.createObjectURL(file);
-      } 
-      else if (type === "upi") {
-        if (!upiInput.value.trim()) {
-          alert("Please enter UPI ID!");
-          return;
-        }
-        data = `upi://pay?pa=${upiInput.value.trim()}`;
-      } 
-      else if (type === "wifi") {
-        if (!ssid || !wifiPass) {
-          alert("Enter both SSID and Password!");
-          return;
-        }
-        data = `WIFI:T:WPA;S:${ssid};P:${wifiPass};;`;
-      } 
-      else {
-        data = input.value.trim();
-        if (!data) {
-          alert("Please enter some data!");
-          return;
-        }
-        if (type === "url" && !data.startsWith("http")) {
-          data = "https://" + data;
-        }
-        if (type === "phone") {
-          data = "tel:" + data;
-        }
-      }
-
-      document.getElementById("qrcode").innerHTML = "";
-      qrcode = new QRCode(document.getElementById("qrcode"), {
-        text: data,
-        width: 200,
-        height: 200,
-      });
-    }
-
-    // 🖼️ Download QR fix
-    function downloadQR() {
-      const canvas = document.querySelector("#qrcode canvas");
-      const img = document.querySelector("#qrcode img");
-
-      let src;
-      if (canvas) {
-        src = canvas.toDataURL("image/png");
-      } else if (img) {
-        src = img.src;
-      } else {
-        alert("Please generate a QR first!");
-        return;
-      }
-
-      const link = document.createElement("a");
-      link.href = src;
-      link.download = "QRCode.png";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function copyQR() {
-      const canvas = document.querySelector("#qrcode canvas");
-      const img = document.querySelector("#qrcode img");
-
-      let src;
-      if (canvas) {
-        src = canvas.toDataURL("image/png");
-      } else if (img) {
-        src = img.src;
-      } else {
-        alert("Please generate a QR first!");
-        return;
-      }
-
-      navigator.clipboard.writeText(src).then(() => {
-        alert("QR Code image link copied!");
-      });
-    }
-
-    // Show/Hide inputs dynamically
-    document.getElementById("typeSelect").addEventListener("change", function() {
-      document.getElementById("dataInput").classList.add("hidden");
-      document.getElementById("fileInput").classList.add("hidden");
-      document.getElementById("upiInput").classList.add("hidden");
-      document.getElementById("wifiInputs").classList.add("hidden");
-
-      if (this.value === "file") {
-        document.getElementById("fileInput").classList.remove("hidden");
-      } 
-      else if (this.value === "upi") {
-        document.getElementById("upiInput").classList.remove("hidden");
-      }
-      else if (this.value === "wifi") {
-        document.getElementById("wifiInputs").classList.remove("hidden");
-      }
-      else {
-        document.getElementById("dataInput").classList.remove("hidden");
-      }
-    });
-  </script>
-</body>
-</html>
-
