@@ -3,119 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QR Code Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <title>Universal QR Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      font-family: "Poppins", sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: radial-gradient(circle at top, #1e293b, #0f172a);
+      color: #f1f5f9;
       min-height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
-    }
-
-    .container {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(15px);
-      padding: 30px;
-      border-radius: 20px;
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    }
-
-    h2 {
-      color: white;
-      margin-bottom: 20px;
-    }
-
-    select, input, button {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    select, input {
-      background: rgba(255,255,255,0.9);
-      outline: none;
-    }
-
-    button {
-      background: #0078ff;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: #005fcc;
-    }
-
-    #qrcode {
-      margin: 20px auto;
-      padding: 10px;
-      background: white;
-      border-radius: 15px;
-      display: inline-block;
-    }
-
-    .actions {
-      margin-top: 15px;
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', sans-serif;
     }
-
-    .actions button {
-      flex: 1;
-      margin: 5px;
+    .glass {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
-
-    .hidden {
-      display: none;
+    select, input, textarea {
+      color: #f1f5f9 !important;
+      background-color: rgba(51, 65, 85, 0.6) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-
-    #preview {
-      display: none;
-      background: white;
-      border-radius: 15px;
-      margin-top: 10px;
-      padding: 10px;
-    }
-
-    #preview img {
-      width: 200px;
-      border-radius: 10px;
+    option {
+      background: #1e293b;
+      color: #f1f5f9;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>✨ Universal QR Code Generator</h2>
+  <div class="glass w-full max-w-md text-center">
+    <h1 class="text-2xl font-bold mb-4">🌐 Universal QR Generator</h1>
 
-    <select id="typeSelect">
+    <select id="qrType" class="w-full p-2 mb-3 rounded">
       <option value="text">Text</option>
-      <option value="url">URL</option>
-      <option value="phone">Phone Number</option>
-      <option value="file">File (Image/Doc)</option>
-      <option value="upi">UPI ID</option>
+      <option value="email">Email</option>
+      <option value="contact">Contact</option>
+      <option value="business">Business Card</option>
       <option value="wifi">Wi-Fi</option>
     </select>
 
-    <input type="text" id="dataInput" placeholder="Enter your data here...">
-    <input type="file" id="fileInput" class="hidden">
-    <input type="text" id="upiInput" class="hidden" placeholder="Enter UPI ID (example@upi)">
+    <div id="inputFields" class="mb-4"></div>
 
-    <div id="wifiInputs" class="hidden">
-      <input type="text" id="ssidInput" placeholder="Wi-Fi SSID (Network Name)">
-      <input type="text" id="wifiPasswordInput" placeholder="Wi-Fi Password">
+    <button id="generateBtn" class="bg-indigo-600 hover:bg-indigo-500 transition text-white font-semibold py-2 px-4 rounded w-full">Generate QR</button>
+
+    <div id="qrcode" class="mt-5 flex justify-center"></div>
+
+    <div class="mt-4 space-x-2">
+      <button id="downloadBtn" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded">Download</button>
+      <button id="shareBtn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded">Share</button>
     </div>
+  </div>
 
-    <button onclick="generateQRCode()">Generate QR</button>
+  <script>
+    const inputFields = document.getElementById('inputFields');
+    const qrType = document.getElementById('qrType');
+    const qrcodeContainer = document.getElementById('qrcode');
+    const generateBtn = document.getElementById('generateBtn');
 
-    <div id="qrcode"></div>
+    function renderFields() {
+      let html = '';
+      switch (qrType.value) {
+        case 'text':
+          html = '<input id="textInput" type="text" class="w-full p-2 rounded" placeholder="Enter text...">';
+          break;
+        case 'email':
+          html = '<input id="emailInput" type="email" class="w-full p-2 rounded" placeholder="Enter email...">';
+          break;
+        case 'contact':
+        case 'business':
+          html = '<input id="nameInput" type="text" class="w-full p-2 rounded mb-2" placeholder="Name">'+
+                 '<input id="phoneInput" type="text" class="w-full p-2 rounded mb-2" placeholder="Phone">'+
+                 '<input id="emailInput" type="email" class="w-full p-2 rounded mb-2" placeholder="Email">'+
+                 '<textarea id="addressInput" class="w-full p-2 rounded" placeholder="Address"></textarea>';
+          break;
+        case 'wifi':
+          html = '<input id="ssidInput" type="text" class="w-full p-2 rounded mb-2" placeholder="Wi-Fi SSID">'+
+                 '<input id="passInput" type="text" class="w-full p-2 rounded" placeholder="Wi-Fi Password">';
+          break;
+      }
+      inputFields.innerHTML = html;
+    }
+
+    qrType.addEventListener('change', renderFields);
+    renderFields();
+
+    generateBtn.addEventListener('click', () => {
+      qrcodeContainer.innerHTML = '';
+      let qrData = '';
+
+      switch (qrType.value) {
+        case 'text':
+          qrData = document.getElementById('textInput').value;
+          break;
+        case 'email':
+          qrData = 'mailto:' + document.getElementById('emailInput').value;
+          break;
+        case 'contact':
+        case 'business':
+          qrData = `BEGIN:VCARD\nVERSION:3.0\nFN:${document.getElementById('nameInput').value}\nTEL:${document.getElementById('phoneInput').value}\nEMAIL:${document.getElementById('emailInput').value}\nADR:${document.getElementById('addressInput').value}\nEND:VCARD`;
+          break;
+        case 'wifi':
+          qrData = `WIFI:T:WPA;S:${document.getElementById('ssidInput').value};P:${document.getElementById('passInput').value};;`;
+          break;
+      }
+
+      if (!qrData) return alert('Please fill in all fields!');
+
+      new QRCode(qrcodeContainer, {
+        text: qrData,
+        width: 200,
+        height: 200,
+        colorDark: '#f1f5f9',
+        colorLight: '#0f172a'
+      });
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const img = qrcodeContainer.querySelector('img');
+      if (img) {
+        const link = document.createElement('a');
+        link.href = img.src;
+        link.download = 'qr_code.png';
+        link.click();
+      } else {
+        alert('Please generate a QR first!');
+      }
+    });
+
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+      const img = qrcodeContainer.querySelector('img');
+      if (navigator.share && img) {
+        const blob = await (await fetch(img.src)).blob();
+        const file = new File([blob], 'qr_code.png', { type: blob.type });
+        await navigator.share({ files: [file], title: 'My QR Code' });
+      } else {
+        alert('Sharing not supported on this device.');
+      }
+    });
+  </script>
+</body>
+</html>
